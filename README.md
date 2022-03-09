@@ -42,11 +42,13 @@ Output properties -> Resolution X and Y -> set to the same value (i.e. 1080)
 ![This is an image](/doc/resolution.png)
 
 ## Create Light
+SUN
 You can swap your point light for a sunlight for a simple light source.
 Select light -> Object data properties -> Light -> Sun
 
 <img src="/doc/sunlight.png" width="650" height="520">
 
+HDRI
 Alternatively you can use a hdri map to light your scene.
 World properties -> Surface -> Color -> Environment Texture -> Open HDRI
 
