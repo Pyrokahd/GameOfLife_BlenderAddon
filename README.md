@@ -13,7 +13,7 @@ While running there is no visual feedback within blender. Until its finished and
 # The Addon Panel
 Press N in the 3D Viewport to open the sidebar. The addon is added to the sidebar and is called Game of Life.
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/panel.png)
 
 ## Parameter
 - GAME ITERATIONS: How many cycles the simulation will run.
@@ -35,16 +35,23 @@ If ANIMATE_CAMERA is deactivated you can animate your own camera with keyframes.
 
 # Preparations
 Saving the blend file is the most important one! Else no output is saved.
+
+## Set quadratic resolution
+Output properties -> Resolution X and Y -> set to the same value (i.e. 1080)
+
+![This is an image](/doc/resolution.png)
+
 ## Create Light
 You can swap your point light for a sunlight for a simple light source.
 Select light -> Object data properties -> Light -> Sun
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/sunlight.png)
 
 Alternatively you can use a hdri map to light your scene.
 World properties -> Surface -> Color -> Environment Texture -> Open HDRI
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/hdri1.png)
+![This is an image](/doc/hdri2.png)
 
 To then make the background transparent (if you dont want to see the HDRI Image):
 Render properties -> Film -> transparent
@@ -53,7 +60,7 @@ Render properties -> Film -> transparent
 To quickly create a material for the cells select the cube:
 Material properties -> rename to "default_material" -> Fake User (to save it even if no object has this material) -> Change Base Color as you like
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/create_material.png)
 
 You can of course use Nodes to create a fancy material if you like.
 
@@ -61,15 +68,13 @@ You can of course use Nodes to create a fancy material if you like.
 File -> Save as -> Select directory
 In this directory the output (all the frames) will be rendered in a folder called "gameoflife_out"
 
-## Set quadratic resolution
-Output properties -> Resolution X and Y -> set to the same value (i.e. 1080)
 
 # Start Simulation
 ## Open System_Console
 Before Starting open the System Console.
 Window -> Toggle System_Console 
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/systemconsole.png)
 
 There you can see if the addon is still running after started. You can also see how long it takes per iteration and which is the current one.
 
@@ -91,20 +96,20 @@ You can create your own highlight color (which is green by default) by simply cr
 ## Background Image
 If you want to use a background image together with the transparent Film setting you can use this compositing layout.
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/compositing.png)
 
 ## Render Video from Images
 Open a new Blender project.
 Go to the Video Editing workspace.
 (top bar '+') -> new-> video editing -> video editing
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/videoediting1.png)
 
 Import the images as image strip.
 Add -> Image/Sequence -> navigate to your folder -> press 'A' to select all -> import
 Make sure they are ordered correctly from top to bottom.
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/openimagestrip.png)
 
 ### Settings
 1. Set Resolution to the rendered Resolution.
@@ -114,9 +119,9 @@ Make sure they are ordered correctly from top to bottom.
 5. Change File Format to FFmpeg Video and Container to MPEG-4
 6. Render the output (CTRL+F12) or Render -> Render Animation
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/videosettings1.png)
 
-![This is an image](/doc/install.PNG)
+![This is an image](/doc/videosettings2.png)
 
 ## Create GIF with Python and Pillow
 Also if you know how to use python scripts here is some code to generate a gif from the images:
