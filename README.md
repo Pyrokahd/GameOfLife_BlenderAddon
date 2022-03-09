@@ -2,6 +2,8 @@
 A Blender Addon to simulate Conway's game of life and directly output every iteration as a rendered png. 
 While running there is no visual feedback within blender. Until its finished and a small notice pops up on the bottom.
 
+<img src="/doc/simplegif.gif" width="200" height="200">  ![This is an image](/doc/biggif.gif)
+
 # Installation
 1. Download this repo as zip
 2. open blender got to Edit -> Preferences -> Add-ons and press Install
