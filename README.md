@@ -130,9 +130,9 @@ Make sure they are ordered correctly from top to bottom.
 ![This is an image](/doc/videosettings1.png) ![This is an image](/doc/videosettings2.png)
 
 ## Create GIF with Python and Pillow
-Also if you know how to use python scripts here is some code to generate a gif from the images:
+Also if you know how to use python scripts here is some code to generate a gif from the images: <br/>
+Requires Pillow (PIL): https://pillow.readthedocs.io/en/stable/installation.html 
 ```
-import argparse
 from PIL import Image, ImageDraw
 import os
 import time
