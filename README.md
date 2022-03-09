@@ -51,10 +51,11 @@ Alternatively you can use a hdri map to light your scene.
 World properties -> Surface -> Color -> Environment Texture -> Open HDRI
 
 ![This is an image](/doc/hdri1.png)
-![This is an image](/doc/hdri2.png)
 
 To then make the background transparent (if you dont want to see the HDRI Image):
 Render properties -> Film -> transparent
+
+![This is an image](/doc/hdri2.png)
 
 ## Create cell_material
 To quickly create a material for the cells select the cube:
