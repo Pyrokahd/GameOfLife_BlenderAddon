@@ -13,7 +13,7 @@ While running there is no visual feedback within blender. Until its finished and
 # The Addon Panel
 Press N in the 3D Viewport to open the sidebar. The addon is added to the sidebar and is called Game of Life.
 
-![This is an image](/doc/panel.png)
+<img src="/doc/panel.png" width="700" height="420">
 
 ## Parameter
 - GAME ITERATIONS: How many cycles the simulation will run.
@@ -45,23 +45,23 @@ Output properties -> Resolution X and Y -> set to the same value (i.e. 1080)
 You can swap your point light for a sunlight for a simple light source.
 Select light -> Object data properties -> Light -> Sun
 
-![This is an image](/doc/sunlight.png)
+<img src="/doc/sunlight.png" width="650" height="520">
 
 Alternatively you can use a hdri map to light your scene.
 World properties -> Surface -> Color -> Environment Texture -> Open HDRI
 
-![This is an image](/doc/hdri1.png)
+<img src="/doc/hdri1.png" width="720" height="420">
 
 To then make the background transparent (if you dont want to see the HDRI Image):
 Render properties -> Film -> transparent
 
-![This is an image](/doc/hdri2.png)
+<img src="/doc/hdri2.png" width="220" height="380">
 
-## Create cell_material
+## Create default_material
 To quickly create a material for the cells select the cube:
 Material properties -> rename to "default_material" -> Fake User (to save it even if no object has this material) -> Change Base Color as you like
 
-![This is an image](/doc/create_material.png)
+<img src="/doc/create_material.png" width="700" height="610">
 
 You can of course use Nodes to create a fancy material if you like.
 
@@ -120,9 +120,7 @@ Make sure they are ordered correctly from top to bottom.
 5. Change File Format to FFmpeg Video and Container to MPEG-4
 6. Render the output (CTRL+F12) or Render -> Render Animation
 
-![This is an image](/doc/videosettings1.png)
-
-![This is an image](/doc/videosettings2.png)
+![This is an image](/doc/videosettings1.png) ![This is an image](/doc/videosettings2.png)
 
 ## Create GIF with Python and Pillow
 Also if you know how to use python scripts here is some code to generate a gif from the images:
