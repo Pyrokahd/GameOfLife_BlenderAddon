@@ -4,6 +4,8 @@ While running there is no visual feedback within blender. Until its finished and
 
 <img src="/doc/simplegif.gif" width="200" height="200">  ![This is an image](/doc/biggif.gif)
 
+Green cells in the gifs above are the ones created in this iteration, and the other are older ones. (done by using the 'highlighting' color choice)
+
 # Installation
 1. Download this repo as zip
 2. open blender got to Edit -> Preferences -> Add-ons and press Install
