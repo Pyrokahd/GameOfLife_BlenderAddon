@@ -87,7 +87,7 @@ There you can see if the addon is still running after started. You can also see 
 
 ## Abort while running
 The System Console can also be used to terminate the process by clicking in it and pressing CTRL+C (Windows) or CMD+C (MAC).
-This is usefull if you want to stop it early or need access to blender again to change settings. (While running Blender is unresponsive)
+This is usefull if you want to stop it early or need access to blender again to change settings. (While running, Blender is unresponsive)
 
 Now you can run as many simulations as you like. The addon will clean old data up before starting a new run. 
 However rename your old "gameoflife_out" folder to keep the previous run.
@@ -144,16 +144,16 @@ start = time.time()
 # PARAMETER
 path = "gamoflife_out" # PATH TO IMAGE FOLDER
 fps = 30 # SET FPS
-width = 0  # SET TO RESIZE IMAGES
-height = 0 # SET TO RESIZE IMAGES
+width = 0  # SET TO != 0 TO RESIZE IMAGES
+height = 0 # SET TO != 0 TO RESIZE IMAGES
 
 time_per_image = (1000/fps)  # in milliseconds
 
-# save all file names in dict with the number "_0" as key
+# save all file names in a dict with the number behind '_' as key
+# expects file names with format [name]_[number].[filetype], i.e. image_0.png, image_1.png ...
 all_names = {}
 for name in os.listdir(path):
     number = name.split("_")[1].split(".")[0]
-    #name = number+name
     all_names[int(number)] = name
 # sort the dict
 sorted_all_names = dict( sorted(all_names.items()) )
