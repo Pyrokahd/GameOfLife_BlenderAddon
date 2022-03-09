@@ -33,7 +33,8 @@ Camera (Be sure to have quadratic resolution)
 
 If ANIMATE_CAMERA is deactivated you can animate your own camera with keyframes. In that case the total amount of frames in your animation has to be the same as the game iterations. This addon increases the current frame by 1 for every iteration.
 
-# Preperation
+# Preparations
+Saving the blend file is the most important one! Else no output is saved.
 ## Create Light
 You can swap your point light for a sunlight for a simple light source.
 Select light -> Object data properties -> Light -> Sun
