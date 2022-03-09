@@ -42,13 +42,13 @@ Output properties -> Resolution X and Y -> set to the same value (i.e. 1080)
 ![This is an image](/doc/resolution.png)
 
 ## Create Light
-SUN
+SUN: <br/>
 You can swap your point light for a sunlight for a simple light source.
 Select light -> Object data properties -> Light -> Sun
 
 <img src="/doc/sunlight.png" width="650" height="520">
 
-HDRI
+HDRI: <br/>
 Alternatively you can use a hdri map to light your scene.
 World properties -> Surface -> Color -> Environment Texture -> Open HDRI
 
@@ -91,6 +91,9 @@ However rename your old "gameoflife_out" folder to keep the previous run.
 ## Run the Simulation
 You can now press "Run GameOfLife" in the Addon panel to start the simulation.
 Output is generated in the folder called "gameoflife_out" and frames have the naming scheme of "0-iteration_0.png", "1-iteration_1.png"...
+
+
+
 
 # Additional Stuff
 ## Custom Highlight Color
