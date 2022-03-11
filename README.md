@@ -42,9 +42,9 @@ Camera (Be sure to have quadratic resolution)
 If ANIMATE_CAMERA is deactivated you can animate your own camera with keyframes. In that case the total amount of frames in your animation has to be the same as the game iterations. This addon increases the current frame by 1 for every iteration.
 
 ### Custom Materials
-You can use your own materials by creating one named "custom_default_material" for the default material and one "custom_highlight_material" for the highlight material.
+You can use your own materials by creating one named "custom_default_material" for the default material and one "custom_highlight_material" for the highlight material, within your blend file.
 
-<img src="/doc/sunlight.png" width="300" height="300">
+<img src="/doc/example_custom_colors.png" width="180" height="180">
 
 # Preparations
 Saving the blend file is the most important one! Else no output is saved.
