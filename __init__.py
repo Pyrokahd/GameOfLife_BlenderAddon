@@ -1,7 +1,7 @@
 bl_info = {
     "name" : "Game of Life",
     "author" : "Christian Herzog",
-    "version" : (1, 4),
+    "version" : (1, 5),
     "blender" : (3, 0, 0),
     "location" : "3D_Viewport > Sidebar(N) > Game of Life",
     "warning" : "Setting the parameter to high will lead to " \
@@ -35,28 +35,28 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
     )
     SIZE_X : IntProperty(
         name = "SIZE_X",
-        description = "Map Size in X",
+        description = "Map Size in X. Shoule be >= Spawn_X",
         default = 500,
         min = 1,
         max = 10000
     )
     SIZE_Y : IntProperty(
         name = "SIZE_Y",
-        description = "Map Size in X",
+        description = "Map Size in Y. Shoule be >= Spawn_Y",
         default = 500,
         min = 1,
         max = 10000
     )
     SPAWN_X : IntProperty(
         name = "SPAWN_X",
-        description = "Spawn Area size in X. Is centered in map grid",
+        description = "Spawn Area size in X. Is centered in map grid. Shoule be <= Size_X",
         default = 21,
         min = 1,
         max = 500
     )
     SPAWN_Y : IntProperty(
         name = "SPAWN_Y",
-        description = "Spawn Area size in Y. Is centered in map grid",
+        description = "Spawn Area size in Y. Is centered in map grid. Shoule be <= Size_Y",
         default = 21,
         min = 1,
         max = 500
@@ -89,7 +89,7 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
     )
     MESH_DROPDOWN : EnumProperty(
         name = "MESH",
-        description = "Defines which Mesh is used as cell. A cube or a plane.",
+        description = "Defines which Mesh is used as cell. Plane has a much better performance!",
         items = [("CUBE", "Cube", "select cube"),
         ("PLANE",  "Plane", "Best Performance! Select plane"),
         ("SPHERE",  "UVSphere", "select UVSphere"),
@@ -114,13 +114,46 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
     COLOR_CHOICE : EnumProperty(
         description = "color",
         items = [
-                ("DEFAULT", "'default_material'", "Uses the material called 'default_material' in the scene. Should be user created."),
+                ("DEFAULT", "'default_material'", "Default material for cells. A white Principled BSDF by default."+
+                " Can be overwritten by creating your own material named 'custom_default_material'"),
                 ("HIGHLIGHT",  "highlighting", "Uses 'default_material' but also highlights newly created cells "+
-                "in green with a material named 'spawn_color'. Can be overwritten by creating your own Name='spawn_color' material."),
+                "in green with a material named 'highlight_material'. Can be overwritten by creating your own material"+
+                " named 'custom_highlight_material'."),
                 ("RANDOM",  "random colors", "Creates a random color for each new cell")
                 ],
-        default = "DEFAULT"
+        default = "HIGHLIGHT"
     )
+    
+    DEFAULT_COLOR: bpy.props.FloatVectorProperty(
+        name="Default",
+        description="Default cell color in RGBA. Can be overwritten by creating your own material named 'custom_default_material'",
+        size=4,
+        subtype="COLOR",
+        default=(1, 1, 1, 1),
+        min=0,
+        max=1
+        #update=update_view,  # some sort of connected update method?
+    )
+    HIGHLIGHT_COLOR: bpy.props.FloatVectorProperty(
+        name="Highlight",
+        description="Highlight cell color in RGBA. Can be overwritten by creating your own material named 'custom_highlight_material'",
+        size=4,
+        subtype="COLOR",
+        default=(0, 0.6, 0, 1),
+        min=0,
+        max=1
+        #update=update_view,  # some sort of connected update method?
+    )
+    
+    EXPORT_PATH: bpy.props.StringProperty(
+        name = "Export dir",
+        description = "Path to a directory in which all rendered images are saved.",
+        subtype = "DIR_PATH",
+        default = "//gameoflife_out"
+    )
+    
+    # SceneProperties.export:path
+    
     # my_enum : bpy.props.EnumProperty{name="Enum Dropdown",
     # description="desctp" items = [("op1",  "text op1", "value") , ("op2",  "text op2", "value2")]}
 
@@ -141,14 +174,14 @@ class GoL_panel(bpy.types.Panel):
         
         col_req = layout.column(heading = "Requirements")
         col_req.label(text="GameOfLife Scene Requirements:", icon="ERROR")
-        col_req.label(text="a Camera", icon="DECORATE" )
-        col_req.label(text="a light source", icon="DECORATE")
-        col_req.label(text="a material called 'default_material'", icon="DECORATE")
-        col_req.label(text="saved this .blend file", icon="DECORATE")
+        col_req.label(text="A Camera named 'Camera'", icon="DECORATE" )
+        col_req.label(text="A light source (SUN/HDRI)", icon="DECORATE")
+        col_req.label(text="Saved this .blend file", icon="DECORATE")
+        
         
         col_params = layout.box().column(heading = "PARAMETER:")
         col_params.prop(game_of_life_propertygroup, "life_cycles")
-        col_params.label(text="Make SIZE >= SPAWN!")
+        #col_params.label(text="Make SIZE >= SPAWN!")
         size_row = col_params.row()
         size_row.prop(game_of_life_propertygroup, "SIZE_X")
         size_row.prop(game_of_life_propertygroup, "SIZE_Y")
@@ -157,12 +190,15 @@ class GoL_panel(bpy.types.Panel):
         spawn_row.prop(game_of_life_propertygroup, "SPAWN_Y")
         col_params.prop(game_of_life_propertygroup, "BIRTH_CHANCE")
         col_params.prop(game_of_life_propertygroup, "SEED")
-        respawn_row = col_params.box().row()
+        respawn_row = col_params.row()
         respawn_row.prop(game_of_life_propertygroup, "RESPAWN_ITER")
         respawn_row.prop(game_of_life_propertygroup, "MAX_RESPAWNS")
         col_params.prop(game_of_life_propertygroup, "MESH_DROPDOWN")
         col_params.label(text="Color choice:")
         col_params.row().prop(game_of_life_propertygroup, "COLOR_CHOICE", expand = True)
+        color_rows = col_params.row()
+        color_rows.prop(game_of_life_propertygroup, "DEFAULT_COLOR")
+        color_rows.prop(game_of_life_propertygroup, "HIGHLIGHT_COLOR")
         
         expects = layout.column().box()
         expectsrow = expects.row()
@@ -176,7 +212,8 @@ class GoL_panel(bpy.types.Panel):
         
         col_expl = layout.column(heading = "")
         #col_expl.label(text="Every Iteration also increases current frame.")
-        col_expl.label(text="Renders are saved in directory of this blend file.", icon="FILE_FOLDER")
+        #col_expl.label(text="Renders are saved in directory of this blend file.", icon="FILE_FOLDER")
+        col_expl.prop(game_of_life_propertygroup, "EXPORT_PATH")
         
         
         col_run = layout.column(heading_ctxt = "run simulation")
@@ -231,7 +268,8 @@ def render_output(iteration, output_dir, operator, output_file_pattern_string = 
     """
     Render the current image/state to the given output path. Use "iteration" to define the number behind image name.
     """
-    if bpy.data.is_saved:
+    # saved file or specificly set path 
+    if bpy.data.is_saved or (output_dir != "" or output_dir != "//gameoflife_out" ):
         bpy.context.scene.render.filepath = os.path.join(output_dir, (output_file_pattern_string % (iteration, iteration)))
         bpy.ops.render.render(write_still = True)
     else:
@@ -352,24 +390,28 @@ def create_plane_quick(X, Y, _world, CUBE_MAT):
     name = "Cell"
     mesh = bpy.data.meshes.new(name)
     obj = bpy.data.objects.new(name, mesh)
+    obj.location = (x_pos,y_pos,0) # SET OBJ ORIGIN
     coll = bpy.data.collections.get("Collection")  # get collection
     coll.objects.link(obj)  # link to collection in outliner
     bpy.context.view_layer.objects.active = obj  # make new object selected
-    obj.data.materials.append(CUBE_MAT) # append material to active object
 
     verts = []
     edges = []
     faces = []
-
-    verts.append((x_pos-size,y_pos-size,0))
-    verts.append((x_pos-size,y_pos+size,0))
-    verts.append((x_pos+size,y_pos+size,0))
-    verts.append((x_pos+size,y_pos-size,0))
+    
+    # VERTS RELATIVE TO ORIGIN!
+    verts.append((-size,-size,0))  # uses X Y Z coords
+    verts.append((-size,+size,0))
+    verts.append((+size,+size,0))
+    verts.append((+size,-size,0))
     #edges.append((0,1))  # no edges needed, because the face will create them by default
-    faces.append((0,1,2,3))
+    faces.append((0,1,2,3))  # uses indecies from verts array 
+    
     # simplest version to create mesh https://docs.blender.org/api/current/bpy.types.Mesh.html
     # bmesh allows for more complex stuff  https://docs.blender.org/api/current/bmesh.html
     mesh.from_pydata(verts, edges, faces)
+
+    obj.data.materials.append(CUBE_MAT) # append material to active object
 
 
 def create_plane(X, Y, _world, CUBE_MAT):
@@ -427,13 +469,19 @@ def delete_all_cells():
             (re.search(r"^Cell",mesh.name) != None and re.search(r"^Cell", mesh.name).group() == "Cell")):
             bpy.data.meshes.remove(mesh, do_unlink=True)  # del only object
 
-def update_visuals(_world, CUBE_MAT, pre_map, my_mesh = "PLANE", ALL_MATS = [], COLOR_CHOICE = "DEFAULT"):
+def update_visuals(_world, CUBE_MAT, HIGHLIGHT_MAT, pre_map, my_mesh = "PLANE", ALL_MATS = [], COLOR_CHOICE = "DEFAULT"):
     """
     Removes all cubes in the world then creates new cubes based on world array
     _world = current world 
     pre_map = world array of previous iteration, to only update changed locations
     CUBE_MAT is the default_mat, its called CUBE because it used to be only for cubes
+    spawn_mat is HIGHLIGHT_MAT
+    -
+    ALL_MATS means all random materials it does not include CUBE_MAT or HIGHLIGHT_MAT
     """
+    spawn_mat = HIGHLIGHT_MAT 
+    cube_mat_create = CUBE_MAT  # to change material but still keep original as CUBE_MAT   
+    
     # transpose map because its created with np array[x=columns][y=rows] but visualls its [x=rows][y=columns]
     current_map = np.copy(_world.get_world())
     current_map = np.transpose(current_map)
@@ -465,26 +513,26 @@ def update_visuals(_world, CUBE_MAT, pre_map, my_mesh = "PLANE", ALL_MATS = [], 
     ### Thats why in this case we use [y][x] (in the for loop above this text)
     ### And why array of the map is transposed for comparison betwwen visual and logic
 
-    
+    # OUTDATED NOW a HIGHLIGHT MATERIAL IS GIVEN
     #######################
     # create/set Material #   
     #######################
     # Highlight color
     # if not already created
-    all_names = []
-    for mat in bpy.data.materials:
-        all_names.append(mat.name)
-    if not "spawn_color" in all_names:
-        spawn_mat = bpy.data.materials.new(name="spawn_color") #set new material to variable
-        spawn_mat.diffuse_color = (0, 0.5, 0, 1) #change color RGBA
-    spawn_mat = bpy.data.materials["spawn_color"]
+    #all_names = []
+    #for mat in bpy.data.materials:
+    #    all_names.append(mat.name)
+    #if not "spawn_color" in all_names:
+    #    spawn_mat = bpy.data.materials.new(name="spawn_color") #set new material to variable
+    #    spawn_mat.diffuse_color = (0, 0.5, 0, 1) #change color RGBA
+    #spawn_mat = bpy.data.materials["spawn_color"]
     # COLOR_CHOICE #DEFAULT #RANDOM #HIGHLIGHT
     
+
     ####################
     # Create new cells #   
     ####################
     #pre_map = np.transpose(pre_map)
-    cube_mat_create = CUBE_MAT  # to change material but still keep original as CUBE_MAT   
     
      # get indecies where the array == 1
     indx, indy = np.nonzero(_world.get_world() == 1)  # returns two lists (1 dim) one for each index [][]
@@ -840,36 +888,69 @@ class Start_game_of_life(bpy.types.Operator):
     Each iteration is saved as a render in the working directory.
     """
     bl_idname = "addonname.start_gameoflife"
-    bl_label = "Run GameOfLife"
+    bl_label = "> Run GameOfLife <"
     # register with undo system
     # bl_options = {"REGISTER","UNDO"}
-
-    #Properties are created in its own class!
+    
+    #Properties are created in its own class! And are called directly at the start of execute
     
     def execute(self, context): 
+        game_of_life_propertygroup = context.scene.game_of_life_propertygroup
+        
         print()
         print(20*"_")
-        ### GET DEFAULT MATERIAL ###
-        try:
-            CUBE_MAT = bpy.data.materials["default_material"]  # pre defined in scene
-        except:
-            print("swap to default Material")
-            CUBE_MAT = bpy.data.materials["Material"]
+        #############################
+        ### GET DEFAULT MATERIALS ###
+        DEFAULT_COLOR = game_of_life_propertygroup.DEFAULT_COLOR
+        HIGHLIGHT_COLOR = game_of_life_propertygroup.HIGHLIGHT_COLOR
+        
+        
+        # check if its there
+        all_mat_names = []
+        for mat in bpy.data.materials:
+            all_mat_names.append(mat.name)
+        # if not create it 
+        if not "default_material" in all_mat_names:
+            CUBE_MAT = bpy.data.materials.new(name="default_material") #set new material to variable
+            CUBE_MAT.diffuse_color = DEFAULT_COLOR #change color RGBA
+        bpy.data.materials["default_material"].diffuse_color = DEFAULT_COLOR    # set color to new one
+        CUBE_MAT = bpy.data.materials["default_material"]
+
+        
+        # check if its there
+        # if not create it 
+        if not "highlight_material" in all_mat_names:
+            HIGHLIGHT_MAT = bpy.data.materials.new(name="highlight_material") #set new material to variable
+            HIGHLIGHT_MAT.diffuse_color = HIGHLIGHT_COLOR #change color RGBA
+        bpy.data.materials["highlight_material"].diffuse_color = HIGHLIGHT_COLOR    # set color to new one
+        HIGHLIGHT_MAT = bpy.data.materials["highlight_material"]
+        
+        # Overwrite materials with custome ones if they exist
+        if "custom_highlight_material" in all_mat_names:
+            HIGHLIGHT_MAT = bpy.data.materials["custom_highlight_material"]
+        if "custom_default_material" in all_mat_names:
+            CUBE_MAT = bpy.data.materials["custom_default_material"]    
             
-        ### SET RENDER PATH ###
+        ### SET DEFAULT RENDER PATH ###
+        # will be overwritten if Export Path is set
         RENDER_PATH = os.path.join("//", "gameoflife_out")  # // = relative path of blend file 
         print(f"PATH IS: {RENDER_PATH}")
         print(20*"_")
         ######################
         ### GET PROPERTIES ###
         ######################
-        game_of_life_propertygroup = context.scene.game_of_life_propertygroup
         
         life_cycles = game_of_life_propertygroup.life_cycles
         SIZE_X = game_of_life_propertygroup.SIZE_X
         SIZE_Y = game_of_life_propertygroup.SIZE_Y
         SPAWN_X = game_of_life_propertygroup.SPAWN_X
         SPAWN_Y = game_of_life_propertygroup.SPAWN_Y
+        # Set size = Spawn if its below spawn size to avoid error
+        if SPAWN_X > SIZE_X:
+            SIZE_X = SPAWN_X
+        if SPAWN_Y > SIZE_Y:
+            SIZE_Y = SPAWN_Y
+        
         BIRTH_CHANCE = game_of_life_propertygroup.BIRTH_CHANCE
         SEED = game_of_life_propertygroup.SEED
         RESPAWN_ITER = game_of_life_propertygroup.RESPAWN_ITER
@@ -879,7 +960,12 @@ class Start_game_of_life(bpy.types.Operator):
         ORTHO_CAM = game_of_life_propertygroup.ORTHO_CAM
         MAX_RESPAWNS = game_of_life_propertygroup.MAX_RESPAWNS
 
-        
+        EXPORT_PATH = game_of_life_propertygroup.EXPORT_PATH
+        if not EXPORT_PATH == "" or EXPORT_PATH == "gameoflife_out":
+            RENDER_PATH = EXPORT_PATH  # use newly set path
+            
+        print(f"PATH EXPORT: {EXPORT_PATH}")
+        #RENDER_PATH = os.path.join("//", EXPORT_PATH)
         #################
         ### GAME INIT ###
         #################
@@ -935,7 +1021,7 @@ class Start_game_of_life(bpy.types.Operator):
             adjust_camera(camera, inner_grid_size)
         
         # first image
-        update_visuals(world, CUBE_MAT, previous_map_array, SELECTED_MESH, ALL_MATS, COLOR_CHOICE)
+        update_visuals(world, CUBE_MAT, HIGHLIGHT_MAT, previous_map_array, SELECTED_MESH, ALL_MATS, COLOR_CHOICE)
         
         render_output(0, RENDER_PATH, self)
         
@@ -968,7 +1054,7 @@ class Start_game_of_life(bpy.types.Operator):
             previous_map_array = np.copy(world.get_world())  # dont want reference -> copy # map before updating
             update_cells(r_cells, world)
             ## UPDATE VISUALS ###
-            update_visuals(world, CUBE_MAT, previous_map_array, SELECTED_MESH, ALL_MATS, COLOR_CHOICE)
+            update_visuals(world, CUBE_MAT, HIGHLIGHT_MAT, previous_map_array, SELECTED_MESH, ALL_MATS, COLOR_CHOICE)
             ## ADJUST CAMERA ##
             if ANIMATE_CAM:
                 r_cells = get_relevant_cells(world)

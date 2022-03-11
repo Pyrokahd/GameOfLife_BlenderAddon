@@ -40,3 +40,11 @@ Now created using vertecies and a face with from_pydata() instead of primitive_p
 V1.4
 Bug fix, new planes are now correctly named as Cell
 New option to limit how often cells respawn if using respawn_iterations
+
+V1.5
+fixed bug in which planes had wrong origin
+Output dir now selectable from menu.
+Default Metarial color setting in menu.
+Highlight color setting in menu. set Highlight as default
+- overwriting both materials is now done by creating one named "custom_default_material" and "custom_highlight_material" respectively
+
