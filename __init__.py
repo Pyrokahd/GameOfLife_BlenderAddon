@@ -1,7 +1,7 @@
 bl_info = {
     "name" : "Game of Life",
     "author" : "Christian Herzog",
-    "version" : (1, 3),
+    "version" : (1, 4),
     "blender" : (3, 0, 0),
     "location" : "3D_Viewport > Sidebar(N) > Game of Life",
     "warning" : "Setting the parameter to high will lead to " \
@@ -37,14 +37,14 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         name = "SIZE_X",
         description = "Map Size in X",
         default = 500,
-        min = 2,
+        min = 1,
         max = 10000
     )
     SIZE_Y : IntProperty(
         name = "SIZE_Y",
         description = "Map Size in X",
         default = 500,
-        min = 2,
+        min = 1,
         max = 10000
     )
     SPAWN_X : IntProperty(
@@ -52,14 +52,14 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         description = "Spawn Area size in X. Is centered in map grid",
         default = 21,
         min = 1,
-        max = 200
+        max = 500
     )
     SPAWN_Y : IntProperty(
         name = "SPAWN_Y",
         description = "Spawn Area size in Y. Is centered in map grid",
         default = 21,
         min = 1,
-        max = 200
+        max = 500
     )
     BIRTH_CHANCE : FloatProperty(
         name = "BIRTH_CHANCE",
@@ -76,8 +76,14 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         max = 999999999
     )
     RESPAWN_ITER : IntProperty(
-        name = "RESPAWN_ITERATIONS",
-        description = "After How many Iterations should new cells spawn. 0 to deactivate",
+        name = "RESPAWN_ITER",
+        description = "After How many Ingame Iterations should new cells spawn. They use the spawn area and Birth_chance that is set. Set 0 to deactivate!",
+        default = 0,
+        min = 0
+    )
+    MAX_RESPAWNS : IntProperty(
+        name = "MAX_RESPAWNS",
+        description = "How often respawn should trigger. 0 means for every xth iteration set in RESPAWN_ITERATIONS, so set 0 to deactivate!",
         default = 0,
         min = 0
     )
@@ -151,7 +157,9 @@ class GoL_panel(bpy.types.Panel):
         spawn_row.prop(game_of_life_propertygroup, "SPAWN_Y")
         col_params.prop(game_of_life_propertygroup, "BIRTH_CHANCE")
         col_params.prop(game_of_life_propertygroup, "SEED")
-        col_params.prop(game_of_life_propertygroup, "RESPAWN_ITER")
+        respawn_row = col_params.box().row()
+        respawn_row.prop(game_of_life_propertygroup, "RESPAWN_ITER")
+        respawn_row.prop(game_of_life_propertygroup, "MAX_RESPAWNS")
         col_params.prop(game_of_life_propertygroup, "MESH_DROPDOWN")
         col_params.label(text="Color choice:")
         col_params.row().prop(game_of_life_propertygroup, "COLOR_CHOICE", expand = True)
@@ -341,7 +349,7 @@ def create_plane_quick(X, Y, _world, CUBE_MAT):
     size = 0.9
     size = size/2
 
-    name = "myObject"
+    name = "Cell"
     mesh = bpy.data.meshes.new(name)
     obj = bpy.data.objects.new(name, mesh)
     coll = bpy.data.collections.get("Collection")  # get collection
@@ -869,6 +877,7 @@ class Start_game_of_life(bpy.types.Operator):
         ANIMATE_CAM = game_of_life_propertygroup.ANIMATE_CAM
         COLOR_CHOICE = game_of_life_propertygroup.COLOR_CHOICE
         ORTHO_CAM = game_of_life_propertygroup.ORTHO_CAM
+        MAX_RESPAWNS = game_of_life_propertygroup.MAX_RESPAWNS
 
         
         #################
@@ -940,14 +949,18 @@ class Start_game_of_life(bpy.types.Operator):
         ### LIFE CYCLE LOOP ###
         #######################
         #######################
+        respawns_count = 0
         self.report({'INFO'}, "Simulation Started")
         for i in range(life_cycles):
             # optional respawn
             if RESPAWN_ITER != 0:
-                if i % RESPAWN_ITER == 0 and i > 0:
+                if (i % RESPAWN_ITER == 0 and i > 0) and (respawns_count < MAX_RESPAWNS or MAX_RESPAWNS == 0):
+                    respawns_count += 1
                     divide_spawn_area = 1  # in case you want to reduce spawn window
                     init_map_witharea(world,area=(int(SPAWN_AREA[0]/divide_spawn_area),
                      int(SPAWN_AREA[1]/divide_spawn_area)), birth_chance=BIRTH_CHANCE)
+                     
+                     
             
             ## GET RELEVANT CELLS ##
             r_cells = get_relevant_cells(world)

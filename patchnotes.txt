@@ -37,3 +37,6 @@ MASSIVE performance boost when using planes.
 Now 1000 Planes take ~0.353 sec instead of ~60.286 sec!
 Now created using vertecies and a face with from_pydata() instead of primitive_plane_add().
 
+V1.4
+Bug fix, new planes are now correctly named as Cell
+New option to limit how often cells respawn if using respawn_iterations
