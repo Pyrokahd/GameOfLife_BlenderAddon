@@ -1,0 +1,39 @@
+until 0.4 
+bug fixes and better descriptions
+
+0.5 
+first new featre -> spawn new cells every X Iterations (if 0 dont)
+
+0.6 
+stable feature found and fixed bug with wrong oriantation
+
+0.7 
+Option to use plane instead of cube
+
+0.8 Orthogonal Camera working now
+
+1.0
+- performance boost (now only new cells are created as new objects, previous cells stay alive and are not deleted)
+	- previously about 8 sec per 500 cells and every cell was updated every frame
+	- now only actually new cells are updated (which saves around 6 secs per frame with 500 cells )
+- random color option
+- Optional Camera disable (for custom settings like non squared gaming areas)
+	- to animate your own camera, num frames = number iterations in that case
+- colored Nodes in (green for new spawned)  -- maybe red for ones that will die ? -> requires future check
+- still bugs
+1.1 
+bug fixes
+
+V1.2
+FIX BUG: Image view seems to only expand on bot left not on top/top mid left/top right distances. / DONE
+Change file to 1-iteration_1.png / DONE
+Change RESPAWN_ITER to RESPAWN ITERATIONS / DONE
+BIRTH CHANCE (the higher the more cells) -- add to description / DONE
+Info about overriding highlight color with your own (and test that it works) / DONE
+BUG, when using uneven SIZE out of bounds / DONE
+
+V1.3
+MASSIVE performance boost when using planes. 
+Now 1000 Planes take ~0.353 sec instead of ~60.286 sec!
+Now created using vertecies and a face with from_pydata() instead of primitive_plane_add().
+

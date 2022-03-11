@@ -1,7 +1,7 @@
 bl_info = {
     "name" : "Game of Life",
     "author" : "Christian Herzog",
-    "version" : (1, 2),
+    "version" : (1, 3),
     "blender" : (3, 0, 0),
     "location" : "3D_Viewport > Sidebar(N) > Game of Life",
     "warning" : "Setting the parameter to high will lead to " \
@@ -66,7 +66,7 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         description = "Chance of spawning a game-cell per grid-cell at initialization. The higher the more cells spawn in the spawn area.",
         default = 0.2,
         min = 0.01,
-        max = 0.8
+        max = 1.0
     )
     SEED : IntProperty(
         name = "SEED",
@@ -85,7 +85,7 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         name = "MESH",
         description = "Defines which Mesh is used as cell. A cube or a plane.",
         items = [("CUBE", "Cube", "select cube"),
-        ("PLANE",  "Plane", "select plane"),
+        ("PLANE",  "Plane", "Best Performance! Select plane"),
         ("SPHERE",  "UVSphere", "select UVSphere"),
         ("TORUS",  "Torus", "select Torus")],
         default = "PLANE"
@@ -328,9 +328,45 @@ def create_cube(X, Y, _world, CUBE_MAT):
     # set material
     current_cube.data.materials.append(CUBE_MAT) #
     
+def create_plane_quick(X, Y, _world, CUBE_MAT):
+    """
+    Creates a Plane at given coords. 
+    World is used to get the size of the grid for a proper Offset to center the cubes
+    """
+    # 1000 planes with this take 0.353 sec instead of 60.286 sec with create_plane()!
     
+    x_pos = np.floor( (X)-0.5*_world.get_size()[0] )+1  # center grid to origin by spawning all cubes with offset
+    y_pos = np.floor( (Y)-0.5*_world.get_size()[1] )+1
+    
+    size = 0.9
+    size = size/2
+
+    name = "myObject"
+    mesh = bpy.data.meshes.new(name)
+    obj = bpy.data.objects.new(name, mesh)
+    coll = bpy.data.collections.get("Collection")  # get collection
+    coll.objects.link(obj)  # link to collection in outliner
+    bpy.context.view_layer.objects.active = obj  # make new object selected
+    obj.data.materials.append(CUBE_MAT) # append material to active object
+
+    verts = []
+    edges = []
+    faces = []
+
+    verts.append((x_pos-size,y_pos-size,0))
+    verts.append((x_pos-size,y_pos+size,0))
+    verts.append((x_pos+size,y_pos+size,0))
+    verts.append((x_pos+size,y_pos-size,0))
+    #edges.append((0,1))  # no edges needed, because the face will create them by default
+    faces.append((0,1,2,3))
+    # simplest version to create mesh https://docs.blender.org/api/current/bpy.types.Mesh.html
+    # bmesh allows for more complex stuff  https://docs.blender.org/api/current/bmesh.html
+    mesh.from_pydata(verts, edges, faces)
+
+
 def create_plane(X, Y, _world, CUBE_MAT):
     """ 
+    DEPRICATED use create_plane_quick()!
     Creates a Plane at given coords. 
     World is used to get the size of the grid for a proper Offset to center the cubes
     """
@@ -380,7 +416,7 @@ def delete_all_cells():
             (re.search(r"^Torus", mesh.name) != None and re.search(r"^Torus", mesh.name).group() == "Torus") or
             (re.search(r"^Plane", mesh.name) != None and re.search(r"^Plane", mesh.name).group() == "Plane") or
             (re.search(r"^Cube", mesh.name) != None and re.search(r"^Cube", mesh.name).group() == "Cube") or
-            (re.search(r"^Cell",meshobj.name) != None and re.search(r"^Cell", mesh.name).group() == "Cell")):
+            (re.search(r"^Cell",mesh.name) != None and re.search(r"^Cell", mesh.name).group() == "Cell")):
             bpy.data.meshes.remove(mesh, do_unlink=True)  # del only object
 
 def update_visuals(_world, CUBE_MAT, pre_map, my_mesh = "PLANE", ALL_MATS = [], COLOR_CHOICE = "DEFAULT"):
@@ -447,6 +483,7 @@ def update_visuals(_world, CUBE_MAT, pre_map, my_mesh = "PLANE", ALL_MATS = [], 
     actually_created = 0   ###
     start = time.time() ###
     print(f"cells alive: {len(indx)}") ##
+    print(f"Creating cells...")
     # loop through those index pairs and create cubes at all positions with value = 1
     for i in range(len(indx)):
         _x = indx[i]
@@ -464,7 +501,7 @@ def update_visuals(_world, CUBE_MAT, pre_map, my_mesh = "PLANE", ALL_MATS = [], 
                 create_cube(_x, _y, _world, cube_mat_create)
                 actually_created+=1
             elif my_mesh == "PLANE":
-                create_plane(_x, _y, _world, cube_mat_create)
+                create_plane_quick(_x, _y, _world, cube_mat_create)
                 actually_created+=1
             elif my_mesh == "SPHERE":
                 create_uvsphere(_x, _y, _world, cube_mat_create)
