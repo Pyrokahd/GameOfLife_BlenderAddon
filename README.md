@@ -26,8 +26,8 @@ Press N in the 3D Viewport to open the sidebar. The addon is added to the sideba
 - BIRTH_CHANCE: The Chance per grid-cell to spawn a gameoflife-cell
 - SEED: A seed for all random operations to reproduce the same results
 - RESPAWN_ITERATIONS: After that amount of iterations, new cells will be initializied in the spawn area. 0 = deactivate.
-- MESH: Which mesh should be rendered (CUBE, PLANE, SPHERE or TORUS)
-** Use Plane for best speed! Its about 200 times faster to create than the other meshes!**
+- MESH: Which mesh should be rendered (CUBE, PLANE, SPHERE or TORUS) <br/>
+**Use Plane for best speed! Its about 200 times faster to create than the other meshes!** <br/>
 Color choice
 - 'default_material': Uses a material named 'default_material' for all cells
 - highlighting: Uses a green highlight color for every cell that is newly spawned this iteration and 'default_material' for all other.
