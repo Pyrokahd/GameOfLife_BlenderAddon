@@ -1,5 +1,5 @@
 # GameOfLife_BlenderAddon
-V 1.5
+v1.5 <br/>
 A Blender Addon to simulate Conway's game of life and directly output every iteration as a rendered png. 
 While running there is no visual feedback within blender. Until its finished and a small notice pops up on the bottom.
 
