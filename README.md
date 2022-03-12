@@ -18,7 +18,7 @@ In the gifs above the cells created in this iteration are colored differently th
 # The Addon Panel
 Press N in the 3D Viewport to open the sidebar. The addon is added to the sidebar and is called Game of Life.
 
-<img src="panel20.png" width="550" height="455">
+<img src="/doc/panel20.PNG" width="700" height="600">
 
 ## Parameter
 - GAME ITERATIONS: How many cycles the simulation will run.
