@@ -3,7 +3,7 @@ v1.5 <br/>
 A Blender Addon to simulate Conway's game of life and directly output every iteration as a rendered png. 
 While running there is no visual feedback within blender. Until its finished and a small notice pops up on the bottom.
 
- <img src="/doc/pattern1.gif" width="200" height="200"> ![This is an image](/doc/biggif.gif) <img src="/doc/3dcamera.gif" width="200" height="200"> <img src="/doc/glider_spawner" width="200" height="200">
+ <img src="/doc/pattern1.gif" width="200" height="200"> ![This is an image](/doc/biggif.gif) <img src="/doc/glider_spawner.gif" width="200" height="200"> <img src="/doc/3dcamera.gif" width="200" height="200"> 
 
 In the gifs above the cells created in this iteration are colored differently than cells form a previous iteration. (done by using the default 'highlighting' color choice)
 
@@ -18,7 +18,7 @@ In the gifs above the cells created in this iteration are colored differently th
 # The Addon Panel
 Press N in the 3D Viewport to open the sidebar. The addon is added to the sidebar and is called Game of Life.
 
-<img src="panel20.PNG" width="550" height="455">
+<img src="panel20.png" width="550" height="455">
 
 ## Parameter
 - GAME ITERATIONS: How many cycles the simulation will run.
