@@ -30,13 +30,15 @@ Press N in the 3D Viewport to open the sidebar. The addon is added to the sideba
 - MAX_RESPAWNS: How often a respawn due to RESPAWN_ITERATIONS should happen. 0 = after every RESPAWN_ITERATIONS. Only relevant if RESPAWN_ITERATIONS is not 0.
 - MESH: Which mesh should be rendered (CUBE, PLANE, SPHERE or TORUS) <br/>
 **Use Plane for best speed! Its about 200 times faster to create than the other meshes!** <br/>
+
 Color choice:
 - 'default_material': Uses a material named 'default_material' for all cells
 - highlighting: Uses the highlight color for every cell that is newly spawned this iteration and 'default_material' for all other.
 - random_colors: A random color for every new cell.
 - Default (COLOR): The color for all cells.
 - Highlight (COLOR): The color for cells when highlighted via the highlighting setting. <br/>
-Camera (Be sure to have quadratic resolution) 
+
+Camera: (Be sure to have quadratic resolution) 
 - ANIMATE_CAMERA: To set the camera above the grid and zoom out as much as needed automatically.
 - Orthographic: To use orthographic camera view
 
