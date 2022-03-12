@@ -5,7 +5,7 @@ While running there is no visual feedback within blender. Until its finished and
 
  <img src="/doc/pattern1.gif" width="200" height="200"> ![This is an image](/doc/biggif.gif) <img src="/doc/3dcamera.gif" width="200" height="200"> <img src="/doc/glider_spawner" width="200" height="200">
 
-Green cells in the gifs above are the ones created in this iteration, and the other are older ones. (done by using the 'highlighting' color choice)
+In the gifs above the cells created in this iteration are colored differently than cells form a previous iteration. (done by using the default 'highlighting' color choice)
 
 # Installation
 1. Download this repo as zip
