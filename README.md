@@ -55,6 +55,7 @@ When using this setting, the size of the loaded image has to be within the size 
 Custom images can easily be made in Paint, Paint.Net or Photoshop. Just make a very small image and paint the pixels in. <br/>
 here some examples (zoomed in in image editing software) that are in this repo.
 
+<img src="/doc/start_pattern_zoomed.png" width="320" height="200" alt="example patterns as start state">
 ![Zoomed in start patterns](/doc/start_pattern_zoomed.png)
 
 ### Custom Materials
