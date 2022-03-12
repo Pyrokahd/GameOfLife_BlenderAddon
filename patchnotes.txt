@@ -43,8 +43,11 @@ New option to limit how often cells respawn if using respawn_iterations
 
 V1.5
 fixed bug in which planes had wrong origin
-Output dir now selectable from menu.
 Default Metarial color setting in menu.
 Highlight color setting in menu. set Highlight as default
-- overwriting both materials is now done by creating one named "custom_default_material" and "custom_highlight_material" respectively
+Output dir now selectable from menu.
 
+V2.0
+Experimental Settings
+-Experimental load image as init state in which each black pixel is one cell in the game
+fixed material with specular 0 and roughness 1 for faster renders

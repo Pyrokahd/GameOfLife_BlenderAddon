@@ -1,12 +1,12 @@
 bl_info = {
     "name" : "Game of Life",
     "author" : "Christian Herzog",
-    "version" : (1, 5),
+    "version" : (2, 0),
     "blender" : (3, 0, 0),
     "location" : "3D_Viewport > Sidebar(N) > Game of Life",
     "warning" : "Setting the parameter to high will lead to " \
      "long processing times! Check Window -> Toggle System_Console for info while running",
-    "wiki_url" : "",
+    "wiki_url" : "https://github.com/Pyrokahd/GameOfLife_BlenderAddon",
     "category" : "Simulation Render"
 }
 
@@ -19,14 +19,97 @@ from bpy.props import *
 import time
 import random 
 
+#import bgl
+#import bpy.utils.previews
+#from gpu_extras.batch import batch_for_shader
+#import gpu
+
+###############################################
+###############################################
+########### PROPERTY UPDATE FUNCTIONS #########
+###############################################
+###############################################
+def allow_image_preview(_self,context):
+    """
+    called from GameOfLifeProperties when changing image path.
+    Also sets the start state image to be used later (or not depending on setting)
+    """
+    print("CHANGE PREVIEW IMAGETEXTURE...")
+    
+    #load image and image texture
+    # self reference to propertygroup where i was called from (game_of_life_propertygroup)
+    # from there we take the value for the property IMG_PATH
+    imagepath = _self.IMG_PATH  
+    
+    # Create texture from image
+    img = bpy.data.images.load(imagepath, check_existing=True) # load from disk path
+    imagename = imagepath.split("/")[-1]
+    if imagename in bpy.data.images.keys():
+        print("Image already in blend file, loading from blend file instead...")
+        img = bpy.data.images[imagename] # imagepath.split("/")[-1 returns the image name from path
+        
+    #img = bpy.data.images['test2.png']  # or read from blend file
+    if not "previewTexture" in bpy.data.textures.keys():
+        texture = bpy.data.textures.new(name="previewTexture", type="IMAGE")
+    else:
+        texture = bpy.data.textures["previewTexture"]
+    texture.image = img
+    tex = bpy.data.textures['previewTexture']
+    tex.extension = 'CLIP' #EXTEND # CLIP # CLIP_CUBE # REPEAT # CHECKER
+    tex.use_interpolation = False # to get clear pixels
+    
+    # CHANGE PointerProperty "preview_texture"
+    _self.preview_texture = tex
+    
+    
+    # CREATE START_STATE_IMAGE
+    # delte previous start state image
+    if "START_STATE_IMAGE" in bpy.data.images.keys():
+        #bpy.data.meshes.remove(obj.data)
+        bpy.data.images.remove(bpy.data.images["START_STATE_IMAGE"])
+    # SET IMAGE IN BLEND FILE AS START_STATE_IMAGE
+    if "START_STATE_IMAGE" not in bpy.data.images.keys():
+        # create start img with same size as img
+        start_img = bpy.data.images.new(name="START_STATE_IMAGE", width=img.size[0], height=img.size[1])
+    else:
+        print("SHOULD NEVER BE HEREE")
+        start_img = bpy.data.images["START_STATE_IMAGE"]
+    # copy the pixels
+    start_img.pixels = img.pixels
+    print("done loading START image")
+    
+                
+# to correct illegal settings
+def fix_size_x(self, context):
+    if self.SPAWN_X > self.SIZE_X:
+        self.SIZE_X = self.SPAWN_X
+        
+def fix_size_y(self, context):
+    if self.SPAWN_Y > self.SIZE_Y:
+        self.SIZE_Y = self.SPAWN_Y
+        
+def fix_spawn_x(self, context):
+    if self.SPAWN_X > self.SIZE_X:
+         self.SPAWN_X = self.SIZE_X
+        
+def fix_spawn_y(self, context):
+    if self.SPAWN_Y > self.SIZE_Y:
+        self.SPAWN_Y = self.SIZE_Y
+
 ###############################################
 ###############################################
 ########### MENU AND PROPERTY STUFF ###########
 ###############################################
-###############################################
+###############################################    
 
 # create custom property group
 class  GameOfLifeProperties(bpy.types.PropertyGroup):
+
+    preview_texture : PointerProperty (
+        type = bpy.types.Texture,
+        description = "temp storage for texture to be previewed"
+    )
+    
     life_cycles : IntProperty(
         name = "GAME ITERATIONS",
         description = "How many iterations for game of life",
@@ -38,28 +121,32 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         description = "Map Size in X. Shoule be >= Spawn_X",
         default = 500,
         min = 1,
-        max = 10000
+        max = 10000,
+        update = fix_spawn_x
     )
     SIZE_Y : IntProperty(
         name = "SIZE_Y",
         description = "Map Size in Y. Shoule be >= Spawn_Y",
         default = 500,
         min = 1,
-        max = 10000
+        max = 10000,
+        update = fix_spawn_y
     )
     SPAWN_X : IntProperty(
         name = "SPAWN_X",
         description = "Spawn Area size in X. Is centered in map grid. Shoule be <= Size_X",
         default = 21,
         min = 1,
-        max = 500
+        max = 500,
+        update = fix_size_x
     )
     SPAWN_Y : IntProperty(
         name = "SPAWN_Y",
         description = "Spawn Area size in Y. Is centered in map grid. Shoule be <= Size_Y",
         default = 21,
         min = 1,
-        max = 500
+        max = 500,
+        update = fix_size_y
     )
     BIRTH_CHANCE : FloatProperty(
         name = "BIRTH_CHANCE",
@@ -123,7 +210,6 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
                 ],
         default = "HIGHLIGHT"
     )
-    
     DEFAULT_COLOR: bpy.props.FloatVectorProperty(
         name="Default",
         description="Default cell color in RGBA. Can be overwritten by creating your own material named 'custom_default_material'",
@@ -142,7 +228,7 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         default=(0, 0.6, 0, 1),
         min=0,
         max=1
-        #update=update_view,  # some sort of connected update method?
+        #update=update_view,  
     )
     
     EXPORT_PATH: bpy.props.StringProperty(
@@ -152,7 +238,25 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
         default = "//gameoflife_out"
     )
     
-    # SceneProperties.export:path
+    
+    # PROPERTIES FOR EXPERIMENTAL SETTINGS PANEL
+    
+    IMG_PATH: bpy.props.StringProperty(
+        name = "Start State Image",
+        description = "Select an image to represent the start state. Each black Pixel in the image"+
+        " will be one cell at start!  If an image with the same name is already in the blendfile, this will be used instead!"+
+        "   If the image is larger (width and height) than the game SIZE, this setting will be ignored!",
+        subtype = "FILE_PATH",
+        default = "",
+        update = allow_image_preview
+    )
+    USE_START_IMG : BoolProperty(
+        name = "USE THIS IMAGE AS START STATE",
+        description = "If True and an image is loaded as Start State, each black pixel in the image will"+
+        " spawn as a cell when starting, instead of the normal random spawn."+
+        "   If the image is larger (width and height) than the game SIZE, this setting will be ignored!",
+        default = False
+    )
     
     # my_enum : bpy.props.EnumProperty{name="Enum Dropdown",
     # description="desctp" items = [("op1",  "text op1", "value") , ("op2",  "text op2", "value2")]}
@@ -161,11 +265,12 @@ class  GameOfLifeProperties(bpy.types.PropertyGroup):
 
 class GoL_panel(bpy.types.Panel):
     bl_label = "Game of Life"  # is shown as name of the panel
-    bl_idname = "OBJECT_PT_GoL_Panel"  # just an id but convetion wants _PT_ for panel
+    bl_idname = "OBJECT_PT_GoL_Panel"  # just an id but convention wants _PT_ for panel
     # where in which window should it be
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"  # the N button windows
     bl_category = 'Game of Life'  # or "new tab" for something new
+    
     
     def draw(self, context):
         layout = self.layout
@@ -222,8 +327,51 @@ class GoL_panel(bpy.types.Panel):
         col_run.operator("addonname.start_gameoflife")  # bl_idname of my operator
         # bl_label is used as title for the button = "Render GameOfLife"
         
-        col_info = layout.column(heading="additional info")
+        col_info = layout.column(heading="additional info")  # not showing header, why?
         col_info.label(text="Last Game State will be visible in scene.")
+        
+        #col_info.popover("OBJECT_PT_GoL_exp_Panel")  # seems to be more for choosing textures, materials and such
+                
+                            ##col_info.prop_search(bpy.data, "textures", bpy.data, "images")  # just some silly tests
+
+        # Need pointer properties for that however they work...
+        #col.template_ID_preview(bpy.data.images, "Image", new="test2.png",)
+
+
+class GoL_exp_settings_panel(bpy.types.Panel):
+    """
+    A new Panel for settings for experimental features, new panel to no overcrowd the main panel
+    """
+    bl_label = "Experimental Settings"  # is shown as name of the panel
+    bl_idname = "OBJECT_PT_GoL_exp_Panel"  # just an id but convention wants _PT_ for panel
+    # where in which window should it be (BELOW THE MAIN PANEL)
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"  # the N button windows
+    bl_category = 'Game of Life'
+    
+    def draw(self, context):
+        layout = self.layout
+        game_of_life_propertygroup = context.scene.game_of_life_propertygroup
+        
+        col_exp = layout.column(heading="")
+        col_exp.label(text="EXPERIMENTAL SETTINGS:")
+        col_exp_box = col_exp.box()
+        
+        col_exp_box.label(text="Load an image, to spawn a cell for each black pixel.")
+        col_exp_box.prop(game_of_life_propertygroup, "IMG_PATH")
+        col_exp_box.prop(game_of_life_propertygroup, "USE_START_IMG")
+        
+        
+        #name = game_of_life_propertygroup.IMG_PATH
+        #print("now in draw")
+        #print(game_of_life_propertygroup.preview_tex )
+        
+        if game_of_life_propertygroup.preview_texture != None:
+            layout.column().label(text="")
+            # Preview texture texturepreview
+            col_exp_box.label(text="Preview:    (rescale to refresh the view)")
+            col_exp_box.template_preview(game_of_life_propertygroup.preview_texture)
+
         
 ##########################################
 ##########################################
@@ -254,11 +402,13 @@ class Worldgrid():
         return self.size
     
     def add_cell(self,x,y):
-
         self.world[x][y] = 1
 
     def remove_cell(self,x,y):
         self.world[x][y] = 0
+        
+    def set_world(self, newarray):
+        self.world = newarray
 
 def check_cell_status(x,y,world):
     """returns 0 if a cell does and 1 if it lifes:"""
@@ -513,21 +663,6 @@ def update_visuals(_world, CUBE_MAT, HIGHLIGHT_MAT, pre_map, my_mesh = "PLANE", 
     ### Thats why in this case we use [y][x] (in the for loop above this text)
     ### And why array of the map is transposed for comparison betwwen visual and logic
 
-    # OUTDATED NOW a HIGHLIGHT MATERIAL IS GIVEN
-    #######################
-    # create/set Material #   
-    #######################
-    # Highlight color
-    # if not already created
-    #all_names = []
-    #for mat in bpy.data.materials:
-    #    all_names.append(mat.name)
-    #if not "spawn_color" in all_names:
-    #    spawn_mat = bpy.data.materials.new(name="spawn_color") #set new material to variable
-    #    spawn_mat.diffuse_color = (0, 0.5, 0, 1) #change color RGBA
-    #spawn_mat = bpy.data.materials["spawn_color"]
-    # COLOR_CHOICE #DEFAULT #RANDOM #HIGHLIGHT
-    
 
     ####################
     # Create new cells #   
@@ -573,7 +708,7 @@ def update_visuals(_world, CUBE_MAT, HIGHLIGHT_MAT, pre_map, my_mesh = "PLANE", 
         for obj in bpy.data.objects:
             # if object is cube or plane
             if (re.search(r"^Cell", obj.name) != None and re.search(r"^Cell", obj.name).group() == "Cell"):
-                # if it alreadywas 1 (alive) in previous
+                # if it already was 1 (alive) in previous
                 if pre_map[ int(obj.location[1]-offsety) ][ int(obj.location[0]-offsetx) ] == 1:
                     # check if default material is in its material list
                     if "default_material" not in obj.material_slots.keys(): # and "Material" not in obj.material_slots.keys():
@@ -776,16 +911,6 @@ def update_cells(_relevant_cells, _world):
     for alive_cell in alive_cells:
         _world.add_cell(alive_cell[0],alive_cell[1])                             
 
-        
-def init_map(_world, birth_chance = 0.1):
-    """
-    Randomly init each cell to be alive or dead with the given birth_chance.
-    """
-    for x in range( len(_world.get_world()) ):
-        for y in range( len(_world.get_world()) ):
-            chance = random.uniform(0,1)  # random float between 0 and 1
-            if chance <= birth_chance:
-                _world.add_cell(x,y)
 
 
 def init_map_witharea(_world, area, birth_chance = 0.1):
@@ -815,16 +940,94 @@ def init_map_witharea(_world, area, birth_chance = 0.1):
                 # and we only work with ints in a grid! So int instead of floor just means
                 # it leans to the right bottom instead of left top
                 # however we do need an int in the end to use as index
+                
+                # That offset is only needed here since all other cells use those cells as reference points
                 _world.add_cell(x+ int(np.floor(offsetx/2)), y+ int(np.floor(offsety/2)) )
                 
+                
+def blender_image_to_numpy_array(img):
+    """
+    Takes a blender img and returns it as a numpy array in which dark pixels are 1 and light are 0.
+    """
+    # GET IMAGE WIDTH
+    width = img.size[0]
+    height = img.size[1]
 
+    # GET PIXELS AS RGB LIST
+    all_rgb_pixels = []
+    rgb_pixel = []
+    i = 0
+    # 5x5 = 25 pixel with 4 channel RGBA
+    # loop over all pixels, group RGBA together and add to list
+    for pixelvalue in img.pixels:
+        i += 1
+        if i % 4 == 0:
+            all_rgb_pixels.append(rgb_pixel)
+            rgb_pixel = []
+        # to ignore the A value only append if its not the fourth
+        else: 
+            rgb_pixel.append(pixelvalue)
+            
+    # CONVERT PIXEL TO GREYSCALE
+    imagegrey = []
+    for pixel in all_rgb_pixels:
+        R, G, B = pixel[0], pixel[1], pixel[2]
+        greypixel = round(0.2989 * R + 0.5870 * G + 0.1140 * B, 1)
+        # REVERT TO 1 FOR BLACK PIXEL AND 0 FOR WHITE! (we want cells to be black = 1, but RGBA has black as 0)
+        if greypixel > 0.5:
+            greypixel = 0
+        else:
+            greypixel = 1
+        imagegrey.append(greypixel)
+    
+    # RECONSTRUCT IMAGE 
+    # to shape it into nparray[width][height]
+    imageArrayRestructured = []
+    row = []
+    n = 0
+    for pixel in imagegrey:
+        n += 1
+        row.append(pixel)
+        if n % width == 0 and n != 0:
+            imageArrayRestructured.append(row)
+            row = []
+    imageArrayRestructured = np.array(imageArrayRestructured)
+    
+    # We need to transpose!, the image is read from bot to top but then saved from top to bot which flipped it
+    imageArrayRestructured = np.transpose(imageArrayRestructured)
+    #print(imageArrayRestructured)
+    return imageArrayRestructured   
+                
+                
+def init_map_with_start_img(_world, start_state_image):
+    """
+    Takes an image and converts every black pixel (or dark in generell) into a cell.
+    """
+    start_state_img_array = blender_image_to_numpy_array(start_state_image)
+    map = np.copy(_world.get_world())
+    
+    offsetx = int((_world.get_world().shape[0]-start_state_img_array.shape[0])/2)
+    offsety = int((_world.get_world().shape[1]-start_state_img_array.shape[1])/2) 
+
+    # directly manipulates world array instead of adding cells
+    for x in range(start_state_img_array.shape[0]):
+        for y in range(start_state_img_array.shape[1]):  
+            map[x+offsetx][y+offsety] = start_state_img_array[x][y]
+            
+    # Rotate because ( not needed )  
+    #map = np.rot90(map, k=0, axes=(0,1))
+    _world.set_world(map)
+    print("Map initialized with image...")
+    
+    
+    
 def get_max_distance_from_center(r_cells, _world):
     """
     The max distance of the furthest cell relativ to map center,
     with the offsets (0,0 is top left and not center). In Numpy array.
     In viewport 0,0 is bot left!
     
-    If map is of size 5 
+    Example: If map is of size 5 
     and index is 2
     the actual max index is 2 - (5/2) = -0.5 then absolute and floor => 0 
     since index 2 is the center of a 5x5 grid (along this axis)
@@ -904,7 +1107,6 @@ class Start_game_of_life(bpy.types.Operator):
         DEFAULT_COLOR = game_of_life_propertygroup.DEFAULT_COLOR
         HIGHLIGHT_COLOR = game_of_life_propertygroup.HIGHLIGHT_COLOR
         
-        
         # check if its there
         all_mat_names = []
         for mat in bpy.data.materials:
@@ -915,8 +1117,9 @@ class Start_game_of_life(bpy.types.Operator):
             CUBE_MAT.diffuse_color = DEFAULT_COLOR #change color RGBA
         bpy.data.materials["default_material"].diffuse_color = DEFAULT_COLOR    # set color to new one
         CUBE_MAT = bpy.data.materials["default_material"]
-
-        
+        CUBE_MAT.specular_intensity = 0
+        CUBE_MAT.roughness = 1
+    
         # check if its there
         # if not create it 
         if not "highlight_material" in all_mat_names:
@@ -924,6 +1127,8 @@ class Start_game_of_life(bpy.types.Operator):
             HIGHLIGHT_MAT.diffuse_color = HIGHLIGHT_COLOR #change color RGBA
         bpy.data.materials["highlight_material"].diffuse_color = HIGHLIGHT_COLOR    # set color to new one
         HIGHLIGHT_MAT = bpy.data.materials["highlight_material"]
+        HIGHLIGHT_MAT.specular_intensity = 0
+        HIGHLIGHT_MAT.roughness = 1
         
         # Overwrite materials with custome ones if they exist
         if "custom_highlight_material" in all_mat_names:
@@ -945,12 +1150,6 @@ class Start_game_of_life(bpy.types.Operator):
         SIZE_Y = game_of_life_propertygroup.SIZE_Y
         SPAWN_X = game_of_life_propertygroup.SPAWN_X
         SPAWN_Y = game_of_life_propertygroup.SPAWN_Y
-        # Set size = Spawn if its below spawn size to avoid error
-        if SPAWN_X > SIZE_X:
-            SIZE_X = SPAWN_X
-        if SPAWN_Y > SIZE_Y:
-            SIZE_Y = SPAWN_Y
-        
         BIRTH_CHANCE = game_of_life_propertygroup.BIRTH_CHANCE
         SEED = game_of_life_propertygroup.SEED
         RESPAWN_ITER = game_of_life_propertygroup.RESPAWN_ITER
@@ -959,11 +1158,32 @@ class Start_game_of_life(bpy.types.Operator):
         COLOR_CHOICE = game_of_life_propertygroup.COLOR_CHOICE
         ORTHO_CAM = game_of_life_propertygroup.ORTHO_CAM
         MAX_RESPAWNS = game_of_life_propertygroup.MAX_RESPAWNS
-
+        USE_START_IMG = game_of_life_propertygroup.USE_START_IMG
+        
         EXPORT_PATH = game_of_life_propertygroup.EXPORT_PATH
         if not EXPORT_PATH == "" or EXPORT_PATH == "gameoflife_out":
             RENDER_PATH = EXPORT_PATH  # use newly set path
-            
+        
+        ##########################
+        ### START STATE CHECKS ###
+        ##########################
+        # is created when loading and changed when loading another, creation here should not be needed
+        ## CHECK IF START STATE IMAGE CAN BE USED
+        if "START_STATE_IMAGE" not in bpy.data.images.keys() and USE_START_IMG:
+            print("No Start State Image loaded!... ignoring setting continue with normal settings")
+            self.report({'WARNING'}, "No Start State Image loaded!, simulating wiht normal settings")
+            USE_START_IMG = False
+        # Check Size of start state image and set use_start_img to false if its to big
+        if "START_STATE_IMAGE" in bpy.data.images.keys():
+            START_IMG = bpy.data.images["START_STATE_IMAGE"]
+            # x und y vertauschen weill das bild 90° im uhrzeigersinn gekippt ins array gelegt wird
+            if START_IMG.size[0] > SIZE_Y or START_IMG.size[0] > SIZE_X:
+                print("Start State Image to big!... ignoring setting continue with normal settings")
+                USE_START_IMG = False
+        else:
+            USE_START_IMG = False
+        
+        print()
         print(f"PATH EXPORT: {EXPORT_PATH}")
         #RENDER_PATH = os.path.join("//", EXPORT_PATH)
         #################
@@ -992,7 +1212,7 @@ class Start_game_of_life(bpy.types.Operator):
         world = Worldgrid(SIZE_X,SIZE_Y)
         bpy.context.scene.frame_set(0)  # if something else should be animated synchron
         
-        # Create material list if set to random color
+        # Create material list if set to random color (if COLOR_CHOICE is "RANDOM")
             # if random_color is false it just removes already existing "RandMat" Materials
         ALL_MATS = create_random_color_list(COLOR_CHOICE)
         
@@ -1010,8 +1230,12 @@ class Start_game_of_life(bpy.types.Operator):
         
         # Random init state
         previous_map_array = np.copy(world.get_world())  # dont want reference -> copy
-        init_map_witharea(world,area=SPAWN_AREA, birth_chance=BIRTH_CHANCE)
-            #world.add_cell(250,250)  # a test
+        
+        if USE_START_IMG:
+            init_map_with_start_img(world, bpy.data.images["START_STATE_IMAGE"])
+        else:
+            init_map_witharea(world,area=SPAWN_AREA, birth_chance=BIRTH_CHANCE)
+            #world.add_cell(250,250)  # a test to add cell manually
 
         # ADJUST CAMERA TO CURRENT CELLS
         if ANIMATE_CAM:
@@ -1036,7 +1260,7 @@ class Start_game_of_life(bpy.types.Operator):
         #######################
         #######################
         respawns_count = 0
-        self.report({'INFO'}, "Simulation Started")
+        print("Simulation Started")
         for i in range(life_cycles):
             # optional respawn
             if RESPAWN_ITER != 0:
@@ -1080,13 +1304,13 @@ class Start_game_of_life(bpy.types.Operator):
 ######################################
 
 #todo add game of life prop
-classes = [GameOfLifeProperties, GoL_panel, Start_game_of_life]
+classes = [GameOfLifeProperties, GoL_panel, GoL_exp_settings_panel, Start_game_of_life]
 
 def register():
     #bpy.utils.register_class(Test_panel)
     for cls in classes:
         bpy.utils.register_class(cls)
-        # add the properties to scene?
+        # add the properties to scene
         bpy.types.Scene.game_of_life_propertygroup = bpy.props.PointerProperty(type = GameOfLifeProperties)
 
 def unregister():
@@ -1098,6 +1322,8 @@ def unregister():
     
 
 if __name__ == "__main__":
+    print()
+    print()
     register()  # register script and add to menu
     #unregister()  # unregister this script and remove from menu
     
