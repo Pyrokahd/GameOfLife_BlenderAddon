@@ -47,6 +47,8 @@ If ANIMATE_CAMERA is deactivated you can animate your own camera with keyframes.
 - USE THIS IMAGE AS START STATE: To activate the image as start state. 
 - Preview: A preview of your loaded image, might need rescaling to refresh if you load another.
 
+When using this setting, the size of the loaded image has to be within the size of the set game map (SIZE_X and SIZE_Y). Else it wont be loaded.
+
 ### Custom Materials
 You can use your own materials by creating one named "custom_default_material" for the default material and one "custom_highlight_material" for the highlight material, within your blend file.
 
