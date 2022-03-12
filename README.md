@@ -35,8 +35,8 @@ Color choice:
 - highlighting: Uses the highlight color for every cell that is newly spawned this iteration and 'default_material' for all other.
 - random_colors: A random color for every new cell.
 - Default (COLOR): The color for all cells.
-- Highlight (COLOR): The color for cells when highlighted via the highlighting setting.
-Camera (Be sure to have quadratic resolution)
+- Highlight (COLOR): The color for cells when highlighted via the highlighting setting. <br/>
+Camera (Be sure to have quadratic resolution) 
 - ANIMATE_CAMERA: To set the camera above the grid and zoom out as much as needed automatically.
 - Orthographic: To use orthographic camera view
 
