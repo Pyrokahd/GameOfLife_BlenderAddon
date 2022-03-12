@@ -3,7 +3,7 @@ v1.5 <br/>
 A Blender Addon to simulate Conway's game of life and directly output every iteration as a rendered png. 
 While running there is no visual feedback within blender. Until its finished and a small notice pops up on the bottom.
 
-<img src="/doc/simplegif.gif" width="200" height="200">  ![This is an image](/doc/biggif.gif)
+ <img src="/doc/pattern1.gif" width="200" height="200"> ![This is an image](/doc/biggif.gif) <img src="/doc/3dcamera.gif" width="200" height="200"> <img src="/doc/glider_spawner" width="200" height="200">
 
 Green cells in the gifs above are the ones created in this iteration, and the other are older ones. (done by using the 'highlighting' color choice)
 
@@ -18,7 +18,7 @@ Green cells in the gifs above are the ones created in this iteration, and the ot
 # The Addon Panel
 Press N in the 3D Viewport to open the sidebar. The addon is added to the sidebar and is called Game of Life.
 
-<img src="/doc/panel.png" width="700" height="420">
+<img src="panel20.PNG" width="550" height="455">
 
 ## Parameter
 - GAME ITERATIONS: How many cycles the simulation will run.
@@ -42,6 +42,11 @@ Camera (Be sure to have quadratic resolution)
 
 If ANIMATE_CAMERA is deactivated you can animate your own camera with keyframes. In that case the total amount of frames in your animation has to be the same as the game iterations. This addon increases the current frame by 1 for every iteration.
 
+## Experimental Settings
+- Start State Image: Loads an image from your drive, to be used as a start state. Each black pixel will be one cell when starting the simulation. Deactivates the other initialization. (If an image with the same name is already in the blend file, it is used instead)
+- USE THIS IMAGE AS START STATE: To activate the image as start state. 
+- Preview: A preview of your loaded image, might need rescaling to refresh if you load another.
+
 ### Custom Materials
 You can use your own materials by creating one named "custom_default_material" for the default material and one "custom_highlight_material" for the highlight material, within your blend file.
 
@@ -56,31 +61,40 @@ Output properties -> Resolution X and Y -> set to the same value (i.e. 1080)
 ![This is an image](/doc/resolution.png)
 
 ## Create Light
-SUN: <br/>
-You can swap your point light for a sunlight for a simple light source.
-Select light -> Object data properties -> Light -> Sun
 
-<img src="/doc/sunlight.png" width="650" height="520">
-
-HDRI: <br/>
-Alternatively you can use a hdri map to light your scene.
-World properties -> Surface -> Color -> Environment Texture -> Open HDRI
+### HDRI
+You can use a hdri map to light your scene, which is probably the best way and fastest way (in rendering) to add good light. <br/>
+World properties -> Surface -> Color -> Environment Texture -> Open HDRI <br/>
+Good HDRIs can be found at https://polyhaven.com/ for example.
 
 <img src="/doc/hdri1.png" width="720" height="420">
 
-To then make the background transparent (if you dont want to see the HDRI Image):
+To then make the background transparent (if you dont want to see the HDRI Image): <br/>
 Render properties -> Film -> transparent
 
 <img src="/doc/hdri2.png" width="220" height="380">
 
+### SUN
+You can swap your point light for a sunlight for a simple light source. <br/>
+Select light -> Object data properties -> Light -> Sun <br/>
+But you probaly need to play with the strength.
+
+<img src="/doc/sunlight.png" width="630" height="500">
+
+### Sky Texture
+Another option is to use a sky texture in the world shader. <br/>
+Shading workspace -> select World instead of Object (node window top left) -> add 'Sky Texture' Node -> Change to 'Preetham' or 'Hosek/Wilkie' -> connect to background color and world output 
+
+<img src="/doc/skytexture.png">
+
 ## Save File
-File -> Save as -> Select directory
+File -> Save as -> Select directory <br/>
 In this directory the output (all the frames) will be rendered in a folder called "gameoflife_out"
 
 
 # Start Simulation
 ## Open System_Console
-Before Starting open the System Console.
+Before Starting open the System Console. <br/>
 Window -> Toggle System_Console 
 
 ![This is an image](/doc/systemconsole.png)
@@ -109,13 +123,13 @@ If you want to use a background image together with the transparent Film setting
 
 ## Render Video from Images
 Open a new Blender project.
-Go to the Video Editing workspace.
+Go to the Video Editing workspace. <br/>
 (top bar '+') -> new-> video editing -> video editing
 
 ![This is an image](/doc/videoediting1.png)
 
-Import the images as image strip.
-Add -> Image/Sequence -> navigate to your folder -> press 'A' to select all -> import
+Import the images as image strip. <br/>
+Add -> Image/Sequence -> navigate to your folder -> press 'A' to select all -> import <br/>
 Make sure they are ordered correctly from top to bottom.
 
 ![This is an image](/doc/openimagestrip.png)
